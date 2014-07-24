@@ -5,24 +5,45 @@ class Array
     self
   end
 
-  # [
-  #   [1,2,3],
-  #   [0,nil,0]
-  # ]
   def to_nodes
     graph = axis_x.each_with_index.map do |axis_y, x|
-      axis_y.each_with_index.map do |present, y|
-        Node.new if present
+      axis_y.each_with_index.map do |weight, y|
+        Node.new(x, y) if weight
+      end
+    end
+
+    graph.each_with_index do |axis_y, x|
+      axis_y.each_with_index do |node, y|
+        next unless node
+
+        [
+          [ 0, -1], # up
+          [ 1,  0], # right
+          [-1,  0], # left
+          [ 0,  1]  # down
+        ].each do |offset_x, offset_y|
+          current_x = x + offset_x
+          if 0 <= current_x && graph[current_x]
+            puts "search! #{x},#{y}"
+            current_y = y + offset_y
+            if 0 <= current_y && neighbor = graph[current_x][current_y]
+              next if neighbor == node
+              puts "found! #{x},#{y} << #{current_x},#{current_y}"
+              node.neighbors << neighbor
+            end
+          end
+        end
       end
     end
   end
 end
 
 class Node
-  attr_accessor :neighbors, :visited
+  attr_accessor :neighbors, :visited, :x, :y
   alias :visited? visited
 
-  def initialize(neighbors = [])
+  def initialize(x = nil, y = nil, neighbors = [])
+    @x, @y     = x, y
     @visited   = false
     @neighbors = neighbors
   end
@@ -30,31 +51,78 @@ class Node
   def visit!
     @visited = true
   end
-end
 
+  def self.breadth_first_search(start)
+    start.visit!
+    open = Array.new
+    open.push(start)
 
-def breadth_first_search(start)
-  start.visit!
-  open = Queue.new
-  open.push(start)
-
-  while(current = open.shift)
-    current.neighbors.each do |neighbor|
-      unless neighbor.visited?
-        neighbor.visit!
-        open.push(neighbor)
+    while(current = open.shift)
+      current.neighbors.each do |neighbor|
+        unless neighbor.visited?
+          neighbor.visit!
+          open.push(neighbor)
+        end
       end
     end
   end
 end
+
+
 
 describe Path do
   it 'has a version number' do
     expect(Path::VERSION).not_to be nil
   end
 
-  subject { [[true, true, false]].to_nodes }
-  it { subject[0][0].should_not be_nil }
-  it { subject[0][1].should_not be_nil }
-  it { subject[0][2].should be_nil }
+  describe Node do
+    subject(:node) { described_class.new }
+
+    describe "#visited?" do
+      it { subject.visited?.should eq false }
+    end
+
+    describe "#visit!?" do
+      it { subject.visit!; subject.visited?.should eq true }
+    end
+
+    describe ".breadth_first_search" do
+      context "no neighbors" do
+        let(:nodes) { [[true, false, true]].to_nodes }
+
+        subject { Node.breadth_first_search(nodes[0][0]) }
+
+        before { subject }
+
+        it { nodes[0][0].visited.should eq true }
+        it { nodes[0][2].visited.should eq false }
+      end
+
+      context "1 neighbor" do
+        let(:nodes) { [[true, true, false]].to_nodes }
+
+        subject { Node.breadth_first_search(nodes[0][0]) }
+
+        before { subject }
+
+        it { nodes[0][0].visited.should eq true }
+        it { nodes[0][1].visited.should eq true }
+      end
+
+    end
+  end
+
+  describe Array do
+    describe "#to_nodes" do
+      subject(:nodes) { [[true, true, false]].to_nodes }
+
+      it { subject[0][0].should_not be_nil }
+      it { subject[0][0].neighbors.size.should eq 1 }
+      it { subject[0][0].neighbors.first.should eq subject[0][1] }
+      it { subject[0][1].should_not be_nil }
+      it { subject[0][1].neighbors.size.should eq 1 }
+      it { subject[0][1].neighbors.first.should eq subject[0][0]  }
+      it { subject[0][2].should be_nil }
+    end
+  end
 end
