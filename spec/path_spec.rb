@@ -24,11 +24,9 @@ class Array
         ].each do |offset_x, offset_y|
           current_x = x + offset_x
           if 0 <= current_x && graph[current_x]
-            puts "search! #{x},#{y}"
             current_y = y + offset_y
             if 0 <= current_y && neighbor = graph[current_x][current_y]
               next if neighbor == node
-              puts "found! #{x},#{y} << #{current_x},#{current_y}"
               node.neighbors << neighbor
             end
           end
@@ -86,7 +84,7 @@ describe Path do
       it { subject.visited?.should eq false }
     end
 
-    describe "#visit!?" do
+    describe "#visit!" do
       it { subject.visit!; subject.visited?.should eq true }
     end
 
@@ -103,14 +101,18 @@ describe Path do
       end
 
       context "1 neighbor" do
-        let(:nodes) { [[true, true, false]].to_nodes }
+        let(:nodes) { [[true, true, true]].to_nodes }
 
         subject { Node.breadth_first_search(nodes[0][0]) }
 
         before { subject }
 
         it { nodes[0][0].visited.should eq true }
+        it { nodes[0][0].distance.should eq 0 }
         it { nodes[0][1].visited.should eq true }
+        it { nodes[0][1].distance.should eq 1 }
+        it { nodes[0][2].visited.should eq true }
+        it { nodes[0][2].distance.should eq 2 }
       end
 
     end
