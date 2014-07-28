@@ -6,13 +6,13 @@ class Array
   end
 
   def to_nodes
-    graph = axis_x.each_with_index.map do |axis_y, x|
+    nodes = axis_x.each_with_index.map do |axis_y, x|
       axis_y.each_with_index.map do |weight, y|
         Node.new(x, y) if weight
       end
     end
 
-    graph.each_with_index do |axis_y, x|
+    nodes.each_with_index do |axis_y, x|
       axis_y.each_with_index do |node, y|
         next unless node
 
@@ -23,9 +23,9 @@ class Array
           [ 0,  1]  # down
         ].each do |offset_x, offset_y|
           current_x = x + offset_x
-          if 0 <= current_x && graph[current_x]
+          if 0 <= current_x && nodes[current_x]
             current_y = y + offset_y
-            if 0 <= current_y && neighbor = graph[current_x][current_y]
+            if 0 <= current_y && neighbor = nodes[current_x][current_y]
               next if neighbor == node
               node.neighbors << neighbor
             end
@@ -52,7 +52,7 @@ class Node
     @visited = true
   end
 
-  def self.breadth_first_search(start)
+  def self.bf_search(start)
     start.visit!
     open = Array.new
     open.push(start)
@@ -88,11 +88,11 @@ describe Path do
       it { subject.visit!; subject.visited?.should eq true }
     end
 
-    describe ".breadth_first_search" do
+    describe ".bf_search" do
       context "no neighbors" do
         let(:nodes) { [[true, false, true]].to_nodes }
 
-        subject { Node.breadth_first_search(nodes[0][0]) }
+        subject { Node.bf_search(nodes[0][0]) }
 
         before { subject }
 
@@ -103,7 +103,7 @@ describe Path do
       context "1 neighbor" do
         let(:nodes) { [[true, true, true]].to_nodes }
 
-        subject { Node.breadth_first_search(nodes[0][0]) }
+        subject { Node.bf_search(nodes[0][0]) }
 
         before { subject }
 
