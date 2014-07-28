@@ -39,12 +39,14 @@ class Array
 end
 
 class Node
-  attr_accessor :neighbors, :visited, :x, :y
+  attr_accessor :neighbors, :visited, :from, :distance, :x, :y
   alias :visited? visited
 
-  def initialize(x = nil, y = nil, neighbors = [])
+  def initialize(x = nil, y = nil, from = nil, distance = 0, neighbors = [])
     @x, @y     = x, y
     @visited   = false
+    @from      = from
+    @distance  = distance
     @neighbors = neighbors
   end
 
@@ -61,6 +63,8 @@ class Node
       current.neighbors.each do |neighbor|
         unless neighbor.visited?
           neighbor.visit!
+          neighbor.from     = current
+          neighbor.distance = current.distance + 1
           open.push(neighbor)
         end
       end
