@@ -6,7 +6,7 @@ class Array
   def to_nodes
     nodes = axis_x.each_with_index.map do |axis_y, x|
       axis_y.each_with_index.map do |weight, y|
-        Node.new(x: x, y: y) if weight
+        Node.new(weight: {x: x, y: y}) if weight
       end
     end
 

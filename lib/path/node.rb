@@ -1,31 +1,27 @@
 class Node
-  attr_accessor :neighbors, :from, :distance, :x, :y
+  attr_accessor :weight, :neighbors
 
-  def initialize(x: nil, y: nil, from: nil, distance: nil, neighbors: [])
-    @x, @y     = x, y
-    @from      = from
-    @distance  = distance
+  def initialize(weight: weight, neighbors: [])
+    @weight    = weight
     @neighbors = neighbors
   end
 
   def self.bf_search(start)
-    start.distance = 0
-
-    open    = Array.new
+    open = Array.new
     open.push(start)
 
-    visited = Hash.new
-    visited[start] = true
+    distance = Hash.new
+    distance[start] = 0
 
     while(current = open.shift)
       current.neighbors.each do |neighbor|
-        unless visited[neighbor]
-          visited[neighbor] = true
-          neighbor.from     = current
-          neighbor.distance = current.distance + 1
+        unless distance[neighbor]
+          distance[neighbor] = distance[current] + 1
           open.push(neighbor)
         end
       end
     end
+
+    return distance
   end
 end

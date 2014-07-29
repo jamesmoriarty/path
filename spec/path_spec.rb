@@ -16,8 +16,8 @@ describe Path do
 
         before { subject }
 
-        it { nodes[0][0].distance.should eq 0 }
-        it { nodes[0][2].distance.should eq nil }
+        it { subject[nodes[0][0]].should eq 0 }
+        it { subject[nodes[0][2]].should eq nil }
       end
 
       context "2 neighbors" do
@@ -27,9 +27,9 @@ describe Path do
 
         before { subject }
 
-        it { nodes[0][0].distance.should eq 0 }
-        it { nodes[0][1].distance.should eq 1 }
-        it { nodes[0][2].distance.should eq 2 }
+        it { subject[nodes[0][0]].should eq 0 }
+        it { subject[nodes[0][1]].should eq 1 }
+        it { subject[nodes[0][2]].should eq 2 }
       end
 
     end
