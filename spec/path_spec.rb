@@ -32,6 +32,19 @@ describe Path do
         it { subject[nodes[0][2]].should eq 2 }
       end
 
+      context "maze" do
+        let(:nodes) do
+          [
+            [true, false, true, true],
+            [true, true,  true, false]
+          ].to_nodes
+        end
+
+        subject { Node.bf_search(nodes[0][0]) }
+
+        it { nodes.each { |row| pp row.map { |node| subject[node]} } }
+      end
+
     end
   end
 
