@@ -1,5 +1,5 @@
 require "path/version"
+require "path/node"
+require "ext/array"
 
-module Path
-  # Your code goes here...
-end
+module Path; end
