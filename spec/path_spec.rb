@@ -9,25 +9,27 @@ describe Path do
     subject(:node) { described_class.new }
 
     describe ".bf_search" do
+      let(:target) { nodes[0][0] }
+
       context "no neighbors" do
         let(:nodes) { [[true, false, true]].to_nodes }
 
-        subject { Node.bf_search(nodes[0][0]) }
+        subject { Node.bf_search(target) }
 
         before { subject }
 
-        it { subject[nodes[0][0]].should eq 0 }
+        it { subject[target].should eq 0 }
         it { subject[nodes[0][2]].should eq nil }
       end
 
       context "2 neighbors" do
         let(:nodes) { [[true, true, true]].to_nodes }
 
-        subject { Node.bf_search(nodes[0][0]) }
+        subject { Node.bf_search(target) }
 
         before { subject }
 
-        it { subject[nodes[0][0]].should eq 0 }
+        it { subject[target].should eq 0 }
         it { subject[nodes[0][1]].should eq 1 }
         it { subject[nodes[0][2]].should eq 2 }
       end
@@ -40,9 +42,21 @@ describe Path do
           ].to_nodes
         end
 
-        subject { Node.bf_search(nodes[0][0]) }
+        subject { Node.bf_search(target) }
 
-        it { nodes.each { |row| pp row.map { |node| subject[node]} } }
+        it { nodes.transpose.each { |row| pp row.map { |node| subject[node]} } }
+
+        it do
+          infinity = Float::INFINITY
+          current  = nodes[0][3]
+          finish   = target
+
+          while(current != finish) do
+            current = current.neighbors.min do |node|
+              subject[node] || infinity
+            end
+          end
+        end
       end
 
     end
