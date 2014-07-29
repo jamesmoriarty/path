@@ -1,28 +1,26 @@
 class Node
-  attr_accessor :neighbors, :visited, :from, :distance, :x, :y
-  alias :visited? visited
+  attr_accessor :neighbors, :from, :distance, :x, :y
 
-  def initialize(x: nil, y: nil, from: nil, distance: 0, neighbors: [])
+  def initialize(x: nil, y: nil, from: nil, distance: nil, neighbors: [])
     @x, @y     = x, y
-    @visited   = false
     @from      = from
     @distance  = distance
     @neighbors = neighbors
   end
 
-  def visit!
-    @visited = true
-  end
-
   def self.bf_search(start)
-    start.visit!
-    open = Array.new
+    start.distance = 0
+
+    open    = Array.new
     open.push(start)
+
+    visited = Hash.new
+    visited[start] = true
 
     while(current = open.shift)
       current.neighbors.each do |neighbor|
-        unless neighbor.visited?
-          neighbor.visit!
+        unless visited[neighbor]
+          visited[neighbor] = true
           neighbor.from     = current
           neighbor.distance = current.distance + 1
           open.push(neighbor)
