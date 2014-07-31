@@ -1,3 +1,98 @@
 #!/usr/bin/env ruby
+$LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
+require "path"
+require "ext/array"
+require "dispel"
 
-require 'path'
+class Map < Array
+  attr_accessor :cursor_x, :cursor_y
+
+  def initialize(width, height)
+    @cursor_x, @cursor_y = width / 2, height / 2
+    super(width) do
+      Array.new(height) do
+        "   "
+      end
+    end
+  end
+
+  def to_s
+    transpose.each.with_index.map do |row, y|
+      row.each_with_index.map do |column, x|
+        if cursor_x == x && cursor_y == y
+          "[ X ]"
+        else
+          "[#{column}]"
+        end
+      end.join("")
+    end.join("\n")
+  end
+end
+
+size = 15
+map  = Map.new(size, size)
+current_x, current_y, finish_x, finish_y = nil
+log = ""
+
+Dispel::Screen.open do |screen|
+  screen.draw map.to_s
+
+  Dispel::Keyboard.output do |key|
+    case key
+    when :"Ctrl+c"
+      break
+    when :up
+      map.cursor_y -= 1
+    when :down
+      map.cursor_y += 1
+    when :right
+      map.cursor_x += 1
+    when :left
+      map.cursor_x -= 1
+    when :t
+
+    when :enter
+      unless current_x && current_y
+        current_x, current_y = map.cursor_x, map.cursor_y
+      else
+        finish_x, finish_y = map.cursor_x, map.cursor_y
+
+        nodes   = map.to_nodes
+        current = nodes[current_x][current_y]
+        finish  = nodes[finish_x][finish_y]
+        visited = {}
+        distances = Node.bf_search(finish)
+
+        distances.each do |node, value|
+          x, y = node.weight[:x], node.weight[:y]
+          map[x][y] = "%3s" % value.to_s
+        end
+
+        step = 0
+        while(current != finish) do
+          step += 1
+          break if step > 100
+
+          log += current.weight.inspect + "\n"
+          x, y = current.weight[:x], current.weight[:y]
+          map[x][y] = " . "
+
+          current = current.neighbors.shuffle.min do |a, b|
+            distances[a] <=> distances[b]
+           end
+
+          visited[current] = true
+
+        end
+        # current_x, current_y = nil
+      end
+    end
+
+    screen.draw [
+      map.to_s,
+      "cursor: (#{map.cursor_x},#{map.cursor_y}), current: (#{current_x},#{current_y}), finish: (#{finish_x}, #{finish_y})",
+      "Looks like you pressed #{key} (Ctrl+c to quit)",
+      log
+    ].join("\n")
+  end
+end
