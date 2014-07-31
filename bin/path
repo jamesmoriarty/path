@@ -69,7 +69,7 @@ Dispel::Screen.open do |screen|
       current = nodes[current_x][current_y]
       finish  = nodes[finish_x][finish_y]
       visited = {}
-      distances = Node.bf_search(finish)
+      distances = Path::Node.bf_search(finish)
 
       distances.each do |node, value|
         x, y = node.weight[:x], node.weight[:y]

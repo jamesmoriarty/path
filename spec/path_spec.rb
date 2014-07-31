@@ -5,7 +5,7 @@ describe Path do
     expect(Path::VERSION).not_to be nil
   end
 
-  describe Node do
+  describe Path::Node do
     subject(:node) { described_class.new }
 
     describe ".bf_search" do
@@ -14,7 +14,7 @@ describe Path do
       context "no neighbors" do
         let(:nodes) { [[true, false, true]].to_nodes }
 
-        subject { Node.bf_search(target) }
+        subject { described_class.bf_search(target) }
 
         before { subject }
 
@@ -25,7 +25,7 @@ describe Path do
       context "2 neighbors" do
         let(:nodes) { [[true, true, true]].to_nodes }
 
-        subject { Node.bf_search(target) }
+        subject { described_class.bf_search(target) }
 
         before { subject }
 
@@ -42,7 +42,7 @@ describe Path do
           ].to_nodes
         end
 
-        subject { Node.bf_search(target) }
+        subject { described_class.bf_search(target) }
 
         it { nodes.transpose.each { |row| pp row.map { |node| subject[node]} } }
 
@@ -52,8 +52,8 @@ describe Path do
           finish   = target
 
           while(current != finish) do
-            current = current.neighbors.min do |node|
-              subject[node] || infinity
+            current = current.neighbors.min do |a, b|
+              subject[a] <=> subject[b]
             end
           end
         end
