@@ -34,7 +34,7 @@ Dispel::Screen.open do |screen|
   map    = Map.new(screen.columns / width, screen.lines - 3)
   log    = String.new
   help = "arrows: move s: place start f: place finish t: toggle open/closed\nCtrl+c: exit"
-  current_x, current_y, finish_x, finish_y = nil
+  start_x, start_y, finish_x, finish_y = nil
   drawable = [
     map,
     help,
@@ -61,28 +61,39 @@ Dispel::Screen.open do |screen|
     when "f"
       finish_x, finish_y = map.cursor_x, map.cursor_y
     when "s"
-      current_x, current_y = map.cursor_x, map.cursor_y
+      start_x, start_y = map.cursor_x, map.cursor_y
     end
 
-    if current_x && current_y && finish_x && finish_y
+    if start_x && start_y && finish_x && finish_y
       nodes   = map.to_nodes
-      current = nodes[current_x][current_y]
+      start   = nodes[start_x][start_y]
       finish  = nodes[finish_x][finish_y]
       visited = {}
-      distances = Path::Node.bf_search(finish)
+      
+      distances = Path::Node.df_search(finish, start) do |to|
+        Proc.new do |from|
+          x = to.data[:x] - from.data[:x]
+          y = to.data[:y] - from.data[:y]
+
+          Math.sqrt(x ** 2 + y ** 2)
+        end
+      end
 
       distances.each do |node, value|
         x, y = node.data[:x], node.data[:y]
         map[x][y] = value
       end
 
-      while(current != finish) do
-        log += current.data.inspect + "\n"
-        x, y = current.data[:x], current.data[:y]
+      while(start != finish) do
+        log += start.data.inspect + "\n"
+        x, y = start.data[:x], start.data[:y]
         map[x][y] = " . "
 
-        current = current.neighbors.shuffle.min do |a, b|
-          distances[a] <=> distances[b]
+        start = start.neighbors.min do |a, b|
+          a = distances[a] || Float::INFINITY
+          b = distances[b] || Float::INFINITY
+
+          a <=> b
         end
       end
     end

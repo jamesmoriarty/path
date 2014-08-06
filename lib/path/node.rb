@@ -7,23 +7,47 @@ module Path
       @neighbors = neighbors
     end
 
-    def self.bf_search(start)
-      open = Array.new
-      open.push(start)
+    def self.df_search(to, from, &heuristic)
+      priority = Array.new
+      priority.push(to)
 
-      distances = Hash.new
-      distances[start] = 0
+      steps = Hash.new
+      steps[to] = 0
 
-      while(current = open.shift)
+      while(current = priority.shift)
+        break if current.neighbors.include?(from)
+
         current.neighbors.each do |neighbor|
-          unless distances[neighbor]
-            distances[neighbor] = distances[current] + 1
-            open.push(neighbor)
+          unless steps[neighbor]
+            steps[neighbor] = steps[current] + 1
+            priority.push(neighbor)
+            priority.sort_by!(&heuristic.call(to))
           end
         end
       end
 
-      return distances
+      return steps
+    end
+
+    def self.bf_search(to, from)
+      frontier = Array.new
+      frontier.push(to)
+
+      steps = Hash.new
+      steps[to] = 0
+
+      while(current = frontier.shift)
+        break if current.neighbors.include?(from)
+
+        current.neighbors.each do |neighbor|
+          unless steps[neighbor]
+            steps[neighbor] = steps[current] + 1
+            frontier.push(neighbor)
+          end
+        end
+      end
+
+      return steps
     end
   end
 end
