@@ -33,7 +33,7 @@ Dispel::Screen.open do |screen|
   width  = 5
   map    = Map.new(screen.columns / width, screen.lines - 3)
   log    = String.new
-  help = "arrows: move s: place start f: place finish t: toggle open/closed"
+  help = "arrows: move s: place start f: place finish t: toggle open/closed\nCtrl+c: exit"
   current_x, current_y, finish_x, finish_y = nil
   drawable = [
     map,
@@ -72,13 +72,13 @@ Dispel::Screen.open do |screen|
       distances = Path::Node.bf_search(finish)
 
       distances.each do |node, value|
-        x, y = node.weight[:x], node.weight[:y]
+        x, y = node.data[:x], node.data[:y]
         map[x][y] = value
       end
 
       while(current != finish) do
-        log += current.weight.inspect + "\n"
-        x, y = current.weight[:x], current.weight[:y]
+        log += current.data.inspect + "\n"
+        x, y = current.data[:x], current.data[:y]
         map[x][y] = " . "
 
         current = current.neighbors.shuffle.min do |a, b|

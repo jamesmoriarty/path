@@ -1,9 +1,9 @@
 module Path
   class Node
-    attr_accessor :weight, :neighbors
+    attr_accessor :data, :neighbors
 
-    def initialize(weight: weight, neighbors: [])
-      @weight    = weight
+    def initialize(data: data, neighbors: [])
+      @data    = data
       @neighbors = neighbors
     end
 

@@ -5,8 +5,8 @@ class Array
 
   def to_nodes
     nodes = axis_x.each_with_index.map do |axis_y, x|
-      axis_y.each_with_index.map do |weight, y|
-        Path::Node.new(weight: {x: x, y: y}) if weight
+      axis_y.each_with_index.map do |data, y|
+        Path::Node.new(data: {x: x, y: y}) if data
       end
     end
 
