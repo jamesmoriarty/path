@@ -11,7 +11,7 @@ class Map < Array
     @cursor_x, @cursor_y = width / 2, height / 2
     super(width) do
       Array.new(height) do
-        rand > 0.25 ? "_" : false
+        rand > 0.25 ? " " : false
       end
     end
   end
@@ -20,10 +20,10 @@ class Map < Array
     transpose.each.with_index.map do |row, y|
       row.each_with_index.map do |column, x|
         if cursor_x == x && cursor_y == y
-          " X "
+          "X"
         else
-          "#{column if column}".center(3)
-        end
+          "#{column ? column : "\u25A1"}"
+        end.center(3)
       end.join("")
     end.join("\n")
   end
@@ -69,15 +69,14 @@ Dispel::Screen.open do |screen|
       start   = nodes[start_x][start_y]
       finish  = nodes[finish_x][finish_y]
       visited = {}
-      
-      distances = Path::Node.df_search(finish, start) do |to|
-        Proc.new do |from|
-          x = to.data[:x] - from.data[:x]
-          y = to.data[:y] - from.data[:y]
 
-          Math.sqrt(x ** 2 + y ** 2)
-        end
+      heuristic = proc do |to, from|
+        x = to.data[:x] - from.data[:x]
+        y = to.data[:y] - from.data[:y]
+        Math.sqrt(x ** 2 + y ** 2)
       end
+
+      distances = Path::Node.df_search start, finish, heuristic
 
       distances.each do |node, value|
         x, y = node.data[:x], node.data[:y]
@@ -85,7 +84,6 @@ Dispel::Screen.open do |screen|
       end
 
       while(start != finish) do
-        log += start.data.inspect + "\n"
         x, y = start.data[:x], start.data[:y]
         map[x][y] = " . "
 
