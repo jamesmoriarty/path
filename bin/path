@@ -30,6 +30,7 @@ class Map < Array
 end
 
 Dispel::Screen.open do |screen|
+  infinity = 1.0 / 0.0
   width  = 5
   map    = Map.new(screen.columns / width, screen.lines - 3)
   log    = String.new
@@ -89,8 +90,8 @@ Dispel::Screen.open do |screen|
         map[x][y] = " . "
 
         start = start.neighbors.min do |a, b|
-          a = distances[a] || Float::INFINITY
-          b = distances[b] || Float::INFINITY
+          a = distances[a] || infinity
+          b = distances[b] || infinity
 
           a <=> b
         end

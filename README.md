@@ -14,8 +14,9 @@ nodes = [
 ].to_nodes
 # => [[<#Node>, ...][...][...]]
 
-to   = nodes[2][2]
-from = nodes[0][0]
+infinity = 1.0 / 0.0
+to       = nodes[2][2]
+from     = nodes[0][0]
 
 heuristic = lambda do |to, from|
   x = to.data[:x] - from.data[:x]
@@ -29,8 +30,8 @@ distances = Path::Node.df_search from, to, heuristic
 
 while(from != to) do
   from = from.neighbors.min do |a, b|
-    a = distances[a] || Float::INFINITY
-    b = distances[b] || Float::INFINITY
+    a = distances[a] || infinity
+    b = distances[b] || infinity
     a <=> b
   end
 end
