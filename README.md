@@ -2,6 +2,40 @@
 
 TODO: Write a gem description
 
+## Usage
+
+```ruby
+require "path"
+
+nodes = [
+  [true,  false, true],
+  [true,  true,  true],
+  [false, false, true]
+].to_nodes
+# => [[<#Node>, ...][...][...]]
+
+to   = nodes[2][2]
+from = nodes[0][0]
+
+heuristic = lambda do |to, from|
+  x = to.data[:x] - from.data[:x]
+  y = to.data[:y] - from.data[:y]
+
+  Math.sqrt(x ** 2 + y ** 2)
+end
+
+distances = Path::Node.df_search from, to, heuristic
+# => { <#Node> => <distance>, ... }
+
+while(from != to) do
+  from = from.neighbors.min do |a, b|
+    a = distances[a] || Float::INFINITY
+    b = distances[b] || Float::INFINITY
+    a <=> b
+  end
+end
+```
+
 ## Installation
 
 Add this line to your application's Gemfile:
