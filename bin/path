@@ -70,7 +70,7 @@ Dispel::Screen.open do |screen|
       finish  = nodes[finish_x][finish_y]
       visited = {}
 
-      heuristic = proc do |to, from|
+      heuristic = lambda do |to, from|
         x = to.data[:x] - from.data[:x]
         y = to.data[:y] - from.data[:y]
         Math.sqrt(x ** 2 + y ** 2)

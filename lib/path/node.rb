@@ -29,7 +29,9 @@ module Path
       return steps
     end
 
-    def self.bf_search(from, to)
+    def self.bf_search(from, to = nil)
+      from, to = nil, from if to.nil?
+
       frontier = Array.new
       frontier.push(to)
 
