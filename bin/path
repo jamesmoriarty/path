@@ -2,13 +2,12 @@
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "path"
 require "ext/array"
-require "dispel"
 
 class Map < Array
   def initialize(width, height)
     super(width) do
       Array.new(height) do
-        rand > 0.25 ? " " : false
+        rand > 0.10 ? true : false
       end
     end
   end
@@ -20,30 +19,20 @@ class Map < Array
   def height
     first.size
   end
-
-  def sprite(size)
-    @cache ||= begin
-      image = Ray::Image.new [width * size, height * size]
-
-      Ray::ImageTarget.new(image) do |target|
-        transpose.each.with_index.map do |row, y|
-          row.each_with_index.map do |column, x|
-            target.draw(Ray::Polygon.rectangle([x * size, y * size, 1 * size, 1 * size], Ray::Color.white)) unless column
-          end
-        end
-
-        target.update
-      end
-
-      Ray::Sprite.new(image, at: [0, 0])
-    end
-  end
 end
 
 require 'ray'
 
 def size
   10
+end
+
+def width
+  80
+end
+
+def height
+  60
 end
 
 def pos_to_grid(pos)
@@ -53,19 +42,38 @@ def pos_to_grid(pos)
   )
 end
 
+def map_to_sprite(map)
+  image = Ray::Image.new [width * size, height * size]
+
+  Ray::ImageTarget.new(image) do |target|
+    map.transpose.each.with_index.map do |row, y|
+      row.each_with_index.map do |column, x|
+        color = column ? Ray::Color.white : Ray::Color.black
+        target.draw(Ray::Polygon.rectangle([x * size, y * size, 1 * size, 1 * size], color))
+      end
+    end
+
+    target.update
+  end
+
+  Ray::Sprite.new(image, at: [0, 0])
+end
+
 Ray.game "Test" do
   register { add_hook :quit, method(:exit!) }
 
   scene :map do
     @cursor = Ray::Polygon.rectangle([-10, -10, size, size], Ray::Color.red)
-    @map    = Map.new(10, 10)
+    @map    = Map.new(width, width)
 
     on :mouse_motion do |pos|
       @cursor.pos = pos_to_grid(pos)
     end
 
     render do |win|
-      win.draw @map.sprite(size)
+      win.draw @cache ||= begin
+        map_to_sprite(@map)
+      end
 
       win.draw @cursor
     end
