@@ -5,10 +5,7 @@ require "ext/array"
 require "dispel"
 
 class Map < Array
-  attr_accessor :cursor_x, :cursor_y
-
   def initialize(width, height)
-    @cursor_x, @cursor_y = width / 2, height / 2
     super(width) do
       Array.new(height) do
         rand > 0.25 ? " " : false
@@ -16,18 +13,68 @@ class Map < Array
     end
   end
 
-  def to_s
-    transpose.each.with_index.map do |row, y|
-      row.each_with_index.map do |column, x|
-        if cursor_x == x && cursor_y == y
-          "X"
-        else
-          "#{column ? column : "\u25A1"}"
-        end.center(3)
-      end.join("")
-    end.join("\n")
+  def width
+    size
+  end
+
+  def height
+    first.size
+  end
+
+  def sprite(size)
+    @cache ||= begin
+      image = Ray::Image.new [width * size, height * size]
+
+      Ray::ImageTarget.new(image) do |target|
+        transpose.each.with_index.map do |row, y|
+          row.each_with_index.map do |column, x|
+            target.draw(Ray::Polygon.rectangle([x * size, y * size, 1 * size, 1 * size], Ray::Color.white)) unless column
+          end
+        end
+
+        target.update
+      end
+
+      Ray::Sprite.new(image, at: [0, 0])
+    end
   end
 end
+
+require 'ray'
+
+def size
+  10
+end
+
+def pos_to_grid(pos)
+  Ray::Vector2.new(
+    pos.x - (pos.x % size),
+    pos.y - (pos.y % size)
+  )
+end
+
+Ray.game "Test" do
+  register { add_hook :quit, method(:exit!) }
+
+  scene :map do
+    @cursor = Ray::Polygon.rectangle([-10, -10, size, size], Ray::Color.red)
+    @map    = Map.new(10, 10)
+
+    on :mouse_motion do |pos|
+      @cursor.pos = pos_to_grid(pos)
+    end
+
+    render do |win|
+      win.draw @map.sprite(size)
+
+      win.draw @cursor
+    end
+  end
+
+  scenes << :map
+end
+
+=begin
 
 Dispel::Screen.open do |screen|
   infinity = 1.0 / 0.0
@@ -101,3 +148,5 @@ Dispel::Screen.open do |screen|
     screen.draw drawable.map(&:to_s).join("\n")
   end
 end
+
+=end
