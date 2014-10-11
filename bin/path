@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "path"
+require 'ray'
+require 'pry'
 require "ext/array"
 
 class Map < Array
@@ -21,61 +23,104 @@ class Map < Array
   end
 end
 
-require 'ray'
+class Game
+  attr_accessor :start, :finish
 
-def size
-  10
-end
-
-def width
-  80
-end
-
-def height
-  60
-end
-
-def pos_to_grid(pos)
-  Ray::Vector2.new(
-    pos.x - (pos.x % size),
-    pos.y - (pos.y % size)
-  )
-end
-
-def map_to_sprite(map)
-  image = Ray::Image.new [width * size, height * size]
-
-  Ray::ImageTarget.new(image) do |target|
-    map.transpose.each.with_index.map do |row, y|
-      row.each_with_index.map do |column, x|
-        color = column ? Ray::Color.white : Ray::Color.black
-        target.draw(Ray::Polygon.rectangle([x * size, y * size, 1 * size, 1 * size], color))
-      end
-    end
-
-    target.update
+  def size
+    10
   end
 
-  Ray::Sprite.new(image, at: [0, 0])
+  def width
+    80
+  end
+
+  def height
+    60
+  end
+
+  def map
+    @map ||= Map.new(width, width)
+  end
+
+  def pos_to_node(pos)
+    x = (pos.x / size).to_i
+    y = (pos.y / size).to_i
+    map.to_nodes[x][y]
+  end
+
+  def path
+    Path::Node.df_search start, finish, method(:heuristic)
+  end
+
+  def cursor
+    @cursor ||= Ray::Polygon.rectangle([-10, -10, size, size], Ray::Color.white)
+    @cursor.each { |point| point.color = !start ? Ray::Color.green : Ray::Color.red }
+    @cursor
+  end
+
+  def pos_to_grid(pos)
+    Ray::Vector2.new(
+      pos.x - (pos.x % size),
+      pos.y - (pos.y % size)
+    )
+  end
+
+  def heuristic(to, from)
+    x = to.data[:x] - from.data[:x]
+    y = to.data[:y] - from.data[:y]
+
+    Math.sqrt(x ** 2 + y ** 2)
+  end
+
+  def map_to_sprite
+    image = Ray::Image.new [width * size, height * size]
+
+    Ray::ImageTarget.new(image) do |target|
+      map.transpose.each.with_index.map do |row, y|
+        row.each_with_index.map do |column, x|
+          color = column ? Ray::Color.white : Ray::Color.black
+          target.draw(Ray::Polygon.rectangle([x * size, y * size, 1 * size, 1 * size], color))
+        end
+      end
+
+      target.update
+    end
+
+    Ray::Sprite.new(image, at: [0, 0])
+  end
 end
+
+
+
 
 Ray.game "Test" do
   register { add_hook :quit, method(:exit!) }
 
   scene :map do
-    @cursor = Ray::Polygon.rectangle([-10, -10, size, size], Ray::Color.red)
-    @map    = Map.new(width, width)
+    @helper = Game.new
 
+    on :mouse_press do |button, pos|
+      if !@helper.start
+        puts "start"
+        puts "#{@helper.pos_to_node(pos)}"
+        @helper.start = @helper.pos_to_node(pos)
+      else
+        puts "finish"
+        puts "#{@helper.pos_to_node(pos)}"
+        @helper.finish = @helper.pos_to_node(pos)
+      end
+      puts @helper.path if @helper.start && @helper.finish
+    end
     on :mouse_motion do |pos|
-      @cursor.pos = pos_to_grid(pos)
+      @helper.cursor.pos = @helper.pos_to_grid(pos)
     end
 
     render do |win|
-      win.draw @cache ||= begin
-        map_to_sprite(@map)
+      win.draw  @cache ||= begin
+        @helper.map_to_sprite
       end
 
-      win.draw @cursor
+      win.draw @helper.cursor
     end
   end
 
